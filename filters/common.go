@@ -29,7 +29,7 @@ func WithIDs(ids ...string) Filter {
 
 		return bson.E{
 			Key:   "_id",
-			Value: bson.M{"$in": bson.A{_ids}},
+			Value: bson.M{"$in": _ids},
 		}
 	}
 }

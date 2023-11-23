@@ -60,7 +60,7 @@ func WithFieldIn(key string, value interface{}) Filter {
 	return func() bson.E {
 		return bson.E{
 			Key:   key,
-			Value: bson.M{"$in": bson.A{value}},
+			Value: bson.M{"$in": value},
 		}
 	}
 }
