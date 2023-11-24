@@ -28,7 +28,5 @@ func New(cfg *config.Config) (*mongo.Database, error) {
 		return nil, err
 	}
 
-	client.StartSession()
-
 	return client.Database(cfg.Database.Name), nil
 }

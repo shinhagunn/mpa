@@ -2,13 +2,10 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"github.com/shinhagunn/mpa/config"
-	"github.com/shinhagunn/mpa/filters"
-	"github.com/shinhagunn/mpa/models"
 	"github.com/shinhagunn/mpa/pkg/mpa_fx"
-	"github.com/shinhagunn/mpa/repo"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func main() {
@@ -22,22 +19,28 @@ func main() {
 		panic(err)
 	}
 
-	userRepo := repo.New(db, &models.User{})
-
-	var users []models.User
-	if err := userRepo.Find(context.TODO(), &users, []filters.Filter{}); err != nil {
+	session, err := db.Client().StartSession()
+	if err != nil {
 		panic(err)
 	}
 
-	// cur, err := db.Collection("users").Find(context.TODO(), filters.ApplyFilters(flts...))
-	// if err != nil {
-	// 	panic(err)
-	// }
+	defer session.EndSession(context.TODO())
 
-	// var users []models.User
-	// if err := cur.All(context.TODO(), &users); err != nil {
-	// 	panic(err)
-	// }
+	err = mongo.WithSession(context.Background(), session, func(sessionContext mongo.SessionContext) error {
+		if err := session.StartTransaction(); err != nil {
+			return err
+		}
 
-	log.Println(users)
+		if err := session.CommitTransaction(sessionContext); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		if abortErr := session.AbortTransaction(context.Background()); abortErr != nil {
+			panic(abortErr)
+		}
+		panic(err)
+	}
 }

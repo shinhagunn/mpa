@@ -1,17 +1,16 @@
-package repo_test
+package mpa_fx_test
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"testing"
 	"time"
 
-	"github.com/brianvoe/gofakeit"
 	"github.com/shinhagunn/mpa/config"
 	"github.com/shinhagunn/mpa/filters"
 	"github.com/shinhagunn/mpa/models"
 	"github.com/shinhagunn/mpa/pkg/mpa_fx"
-	"github.com/shinhagunn/mpa/repo"
 	"github.com/stretchr/testify/suite"
 	"github.com/zsmartex/pkg/v2/utils"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,16 +20,11 @@ import (
 
 func InitUser() *models.User {
 	return &models.User{
-		UID:            utils.GenerateUID(),
-		Username:       "Ga",
-		Email:          "ga@gmail.com",
-		PasswordDigest: "$2a$10$VVTqd7vt.YtgEwQ.nb3OPea.a9L9FYp8siRLYkP9.lCOsigL8je7u",
-		Level:          int64(gofakeit.Number(1, 10)),
-		OTP:            false,
-		Role:           models.UserRoleAdmin,
-		State:          models.UserStateActive,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		UID:       utils.GenerateUID(),
+		Email:     "ga@gmail.com",
+		Role:      models.UserRoleAdmin,
+		CreatedAt: time.Now().Local(),
+		UpdatedAt: time.Now().Local(),
 	}
 }
 
@@ -38,7 +32,7 @@ type UserRepositorySuite struct {
 	suite.Suite
 	app *fxtest.App
 
-	userRepo repo.Repository
+	userRepo mpa_fx.Repository[models.User]
 }
 
 func TestUserRepositorySuite(t *testing.T) {
@@ -51,7 +45,7 @@ func (suite *UserRepositorySuite) SetupSuite() {
 		config.Module,
 		mpa_fx.Module,
 		fx.Invoke(func(db *mongo.Database) {
-			suite.userRepo = repo.New(db, &models.User{})
+			suite.userRepo = mpa_fx.NewRepository(db, models.User{})
 		}),
 	).RequireStart()
 }
@@ -65,6 +59,8 @@ func (suite *UserRepositorySuite) TestCreateUser() {
 
 	err := suite.userRepo.Create(context.TODO(), initedUser)
 	suite.Require().NoError(err)
+
+	fmt.Println(initedUser)
 }
 
 func (suite *UserRepositorySuite) TestCountUsers() {
@@ -89,62 +85,54 @@ func (suite *UserRepositorySuite) TestCountUsers() {
 
 func (suite *UserRepositorySuite) TestFindUsers() {
 	// Find all users
-	var users1 []models.User
-	err := suite.userRepo.Find(context.TODO(), &users1, []filters.Filter{})
+	users1, err := suite.userRepo.Find(context.TODO(), []filters.Filter{})
 	suite.Require().NoError(err)
 	log.Println(users1)
 
 	// Find users with username = 'Ha'
-	var users2 []models.User
-	err = suite.userRepo.Find(context.TODO(), &users2, []filters.Filter{
+	users2, err := suite.userRepo.Find(context.TODO(), []filters.Filter{
 		filters.WithFieldEqual("username", "Ha"),
 	})
 	suite.Require().NoError(err)
 	log.Println(users2)
 
 	// Find users with role in ['anonymus', 'member']
-	var users3 []models.User
-	err = suite.userRepo.Find(context.TODO(), &users3, []filters.Filter{
+	users3, err := suite.userRepo.Find(context.TODO(), []filters.Filter{
 		filters.WithFieldIn("role", []string{"anonymus", "member"}),
 	})
 	suite.Require().NoError(err)
 	log.Println(users3)
 
 	// Find users with time.Now() greater than created_at
-	var users4 []models.User
-	err = suite.userRepo.Find(context.TODO(), &users4, []filters.Filter{
+	users4, err := suite.userRepo.Find(context.TODO(), []filters.Filter{
 		filters.WithFieldLessThan("created_at", time.Now()),
 	})
 	suite.Require().NoError(err)
 	log.Println(users4)
 
 	// Find users with not equal
-	var users5 []models.User
-	err = suite.userRepo.Find(context.TODO(), &users5, []filters.Filter{
+	users5, err := suite.userRepo.Find(context.TODO(), []filters.Filter{
 		filters.WithFieldNotEqual("username", "Ga"),
 	})
 	suite.Require().NoError(err)
 	log.Println(users5)
 
 	// Find users with role not in ['anonymus', 'member']
-	var users6 []models.User
-	err = suite.userRepo.Find(context.TODO(), &users6, []filters.Filter{
+	users6, err := suite.userRepo.Find(context.TODO(), []filters.Filter{
 		filters.WithFieldNotIn("role", []string{"anonymus", "member"}),
 	})
 	suite.Require().NoError(err)
 	log.Println(users6)
 
 	// Find users with field like
-	var users7 []models.User
-	err = suite.userRepo.Find(context.TODO(), &users7, []filters.Filter{
+	users7, err := suite.userRepo.Find(context.TODO(), []filters.Filter{
 		filters.WithFieldLike("username", "H"),
 	})
 	suite.Require().NoError(err)
 	log.Println(users7)
 
 	// Find users with is null
-	var users8 []models.User
-	err = suite.userRepo.Find(context.TODO(), &users8, []filters.Filter{
+	users8, err := suite.userRepo.Find(context.TODO(), []filters.Filter{
 		filters.WithFieldNotNull("username"),
 	})
 	suite.Require().NoError(err)
@@ -153,44 +141,44 @@ func (suite *UserRepositorySuite) TestFindUsers() {
 
 func (suite *UserRepositorySuite) TestFirstUsers() {
 	// Find user with ID
-	var user *models.User
-	err := suite.userRepo.First(context.TODO(), &user, filters.WithID("655f3a9a3385f8f5a987fc9b"))
+	user, err := suite.userRepo.First(context.TODO(), filters.WithID("65603744fc427f07e4e4cf24"))
 	suite.Require().NoError(err)
 	log.Println(user)
 }
 
 func (suite *UserRepositorySuite) TestLastUsers() {
 	// Find user with username
-	var user *models.User
-	err := suite.userRepo.Last(context.TODO(), &user, filters.WithFieldEqual("username", "Ga"))
+	user, err := suite.userRepo.Last(context.TODO(), filters.WithFieldEqual("role", "a"))
 	suite.Require().NoError(err)
 	log.Println(user)
 }
 
-// TODO:
 func (suite *UserRepositorySuite) TestFirstOrCreateUser() {
-	user := &models.User{
-		Username: "Ha",
-	}
-
-	err := suite.userRepo.First(context.TODO(), &user)
+	user, err := suite.userRepo.FirstOrCreate(
+		context.TODO(),
+		&models.User{
+			Email: "ga123@gmail.com",
+		},
+		filters.WithFieldEqual("role", "asd"),
+	)
 	suite.Require().NoError(err)
+
+	log.Println(user)
 }
 
 func (suite *UserRepositorySuite) TestUpdateUser() {
-	var user *models.User
-	err := suite.userRepo.First(context.TODO(), &user, filters.WithFieldEqual("level", 5))
+	user, err := suite.userRepo.First(context.TODO(), filters.WithFieldEqual("role", "member"))
 	suite.Require().NoError(err)
 
-	user.Username = "Ha ga"
+	userUpdate := make(map[string]interface{})
+	userUpdate["role"] = "ahihi"
 
-	err = suite.userRepo.UpdateByID(context.TODO(), user.ID, user)
+	err = suite.userRepo.Updates(context.TODO(), user, userUpdate)
 	suite.Require().NoError(err)
 }
 
 func (suite *UserRepositorySuite) TestDeleteUser() {
-	var user *models.User
-	err := suite.userRepo.First(context.TODO(), &user, filters.WithFieldEqual("level", 5))
+	user, err := suite.userRepo.First(context.TODO(), filters.WithFieldEqual("role", "ahihi"))
 	suite.Require().NoError(err)
 
 	err = suite.userRepo.DeleteByID(context.TODO(), user.ID)
