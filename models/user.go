@@ -7,25 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// TODO: Add callback
-type UserState string
-
-const (
-	UserStateActive  UserState = "active"
-	UserStatePending UserState = "pending"
-	UserStateDeleted UserState = "deleted"
-	UserStateBanned  UserState = "banned"
-	UserStateLocked  UserState = "locked"
-)
-
-var UserStates = []UserState{
-	UserStateActive,
-	UserStatePending,
-	UserStateDeleted,
-	UserStateBanned,
-	UserStateLocked,
-}
-
 type UserRole string
 
 const (
@@ -41,19 +22,12 @@ var UserRoles = []UserRole{
 }
 
 type User struct {
-	ID             primitive.ObjectID `bson:"_id,omitempty"`
-	UID            string             `bson:"uid"`
-	Username       string             `bson:"username"`
-	Email          string             `bson:"email"`
-	PasswordDigest string             `bson:"password_digest"`
-	Level          int64              `bson:"level"`
-	OTP            bool               `bson:"otp"`
-	Role           UserRole           `bson:"role"`
-	State          UserState          `bson:"state"`
-	CreatedAt      time.Time          `bson:"created_at"`
-	UpdatedAt      time.Time          `bson:"updated_at"`
-	// ReferralUID    string             `bson:"referral_uid"`
-	// Data UserData            `bson:"data"`
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	UID       string             `bson:"uid"`
+	Email     string             `bson:"email"`
+	Role      UserRole           `bson:"role"`
+	CreatedAt time.Time          `bson:"created_at"`
+	UpdatedAt time.Time          `bson:"updated_at"`
 }
 
 func (u User) TableName() string {
