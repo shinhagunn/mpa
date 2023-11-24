@@ -17,6 +17,7 @@ type Tabler interface {
 type Repository[T Tabler] interface {
 	DB() *mongo.Database
 	TableName() string
+	Transaction(ctx context.Context, handler func(sessionContext mongo.SessionContext) error) error
 	Count(ctx context.Context, filters ...filtersPkg.Filter) (int, error)
 	Find(ctx context.Context, filters []filtersPkg.Filter, opts ...*options.FindOptions) (models []*T, err error)
 	First(ctx context.Context, filters ...filtersPkg.Filter) (model *T, err error)
@@ -42,6 +43,38 @@ func (r repository[T]) DB() *mongo.Database {
 
 func (r repository[T]) TableName() string {
 	return r.tabler.TableName()
+}
+
+func (r repository[T]) Transaction(ctx context.Context, handler func(sessionContext mongo.SessionContext) error) error {
+	session, err := r.db.Client().StartSession()
+	if err != nil {
+		return err
+	}
+	defer session.EndSession(ctx)
+
+	if err := mongo.WithSession(ctx, session, func(sessionContext mongo.SessionContext) error {
+		if err := session.StartTransaction(); err != nil {
+			return err
+		}
+
+		if err := handler(sessionContext); err != nil {
+			return err
+		}
+
+		if err := session.CommitTransaction(sessionContext); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		if abortErr := session.AbortTransaction(context.Background()); abortErr != nil {
+			return abortErr
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (r repository[T]) Count(ctx context.Context, filters ...filtersPkg.Filter) (int, error) {

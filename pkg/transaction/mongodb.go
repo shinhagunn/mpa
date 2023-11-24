@@ -7,7 +7,7 @@ import (
 )
 
 func TransactionMongo(ctx context.Context, tx *Transaction) {
-	db := tx.Usecases.mongo
+	db := tx.Usecases.Mongo
 
 	session, err := db.Client().StartSession()
 	if err != nil {

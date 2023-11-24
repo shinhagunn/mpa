@@ -45,8 +45,8 @@ type Transaction struct {
 }
 
 type TransactionUsecase struct {
-	gorm  usecase.IUsecase[models.User]
-	mongo *mongo.Database
+	Gorm  usecase.IUsecase[models.User]
+	Mongo *mongo.Database
 }
 
 type TransactionData struct {

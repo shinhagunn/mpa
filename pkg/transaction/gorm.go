@@ -7,7 +7,7 @@ import (
 )
 
 func TransactionGorm(ctx context.Context, trans *Transaction) {
-	usecase := trans.Usecases.gorm
+	usecase := trans.Usecases.Gorm
 
 	if err := usecase.Transaction(func(tx *gorm.DB) error {
 		trans.Listen <- ListenMessage{
