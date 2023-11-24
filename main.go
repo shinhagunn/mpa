@@ -8,6 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// err := h.Transaction(func (data TransactionData) error {})
+
 func main() {
 	cfg, err := config.NewConfig()
 	if err != nil {

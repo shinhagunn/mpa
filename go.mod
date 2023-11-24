@@ -6,19 +6,22 @@ require (
 	github.com/caarlos0/env/v10 v10.0.0
 	github.com/cockroachdb/errors v1.11.1
 	github.com/stretchr/testify v1.8.1
-	github.com/zsmartex/pkg/v2 v2.1.20-0.20231122000707-7c1f77be31b7
+	github.com/zsmartex/pkg/v2 v2.1.20-0.20231123132731-fdbbf8afd1dd
 	go.mongodb.org/mongo-driver v1.13.0
 	go.uber.org/fx v1.20.1
 )
 
 require (
+	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/brianvoe/gofakeit v3.18.0+incompatible // indirect
 	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
 	github.com/cockroachdb/redact v1.1.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/getsentry/sentry-go v0.18.0 // indirect
+	github.com/gofiber/fiber/v2 v2.49.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/gookit/goutil v0.5.5 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
@@ -32,11 +35,19 @@ require (
 	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasthttp v1.49.0 // indirect
+	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
