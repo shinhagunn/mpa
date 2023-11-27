@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/shinhagunn/mpa/filters"
+	"github.com/shinhagunn/mpa/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -23,7 +23,7 @@ type AggregateLookup struct {
 	As string
 }
 
-func WithJoin(ctx context.Context, collection *mongo.Collection, lookup AggregateLookup, filters ...filters.Filter) (*mongo.Cursor, error) {
+func WithJoin(ctx context.Context, collection *mongo.Collection, lookup AggregateLookup, filters ...mongodb.Filter) (*mongo.Cursor, error) {
 	lookupStage := bson.D{
 		{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: lookup.FromCollection},

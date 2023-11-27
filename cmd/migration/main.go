@@ -6,7 +6,7 @@ import (
 
 	"github.com/shinhagunn/mpa/config"
 	"github.com/shinhagunn/mpa/models"
-	"github.com/shinhagunn/mpa/pkg/mpa_fx"
+	"github.com/shinhagunn/mpa/pkg/mongo_fx"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,14 +15,14 @@ import (
 
 type Indexer interface {
 	TableName() string
-	SetIndex() map[string]mpa_fx.IndexType
+	SetIndex() map[string]mongo_fx.IndexType
 }
 
-func GetOptionIndex(name string, typeIndex mpa_fx.IndexType) *options.IndexOptions {
+func GetOptionIndex(name string, typeIndex mongo_fx.IndexType) *options.IndexOptions {
 	opts := options.Index().SetName(name)
 
 	switch typeIndex {
-	case mpa_fx.IndexTypeUnique:
+	case mongo_fx.IndexTypeUnique:
 		opts.SetUnique(true)
 	default:
 		opts.SetUnique(true)
@@ -34,7 +34,7 @@ func GetOptionIndex(name string, typeIndex mpa_fx.IndexType) *options.IndexOptio
 func main() {
 	app := fx.New(
 		config.Module,
-		mpa_fx.Module,
+		mongo_fx.Module,
 		fx.Invoke(func(db *mongo.Database) error {
 			indexers := []Indexer{
 				&models.User{},

@@ -1,4 +1,4 @@
-package mpa_fx
+package mongo_fx
 
 import (
 	"context"

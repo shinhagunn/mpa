@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/shinhagunn/mpa/pkg/mpa_fx"
+	"github.com/shinhagunn/mpa/pkg/mongo_fx"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -34,8 +34,8 @@ func (u User) TableName() string {
 	return "users"
 }
 
-func (u User) SetIndex() map[string]mpa_fx.IndexType {
-	return map[string]mpa_fx.IndexType{
-		"uid": mpa_fx.IndexTypeUnique,
+func (u User) SetIndex() map[string]mongo_fx.IndexType {
+	return map[string]mongo_fx.IndexType{
+		"uid": mongo_fx.IndexTypeUnique,
 	}
 }
