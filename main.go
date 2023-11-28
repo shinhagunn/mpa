@@ -3,11 +3,28 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/shinhagunn/mpa/config"
 	"github.com/shinhagunn/mpa/models"
-	filters "github.com/shinhagunn/mpa/mongodb/fitlers"
+	"github.com/shinhagunn/mpa/mongodb"
 	"github.com/shinhagunn/mpa/pkg/mongo_fx"
+	"github.com/zsmartex/pkg/v2/utils"
+)
+
+type Command string
+
+var (
+	CommandCreate = Command("create")
+	CommandUpdate = Command("update")
+	CommandDelete = Command("delete")
+)
+
+type Action string
+
+var (
+	ActionBefore = Action("before")
+	ActionAfter  = Action("after")
 )
 
 func main() {
@@ -23,13 +40,20 @@ func main() {
 
 	userRepo := mongo_fx.NewRepository(db, models.User{})
 
-	users, err := userRepo.Find(
+	userRepo.AddCallback(mongodb.BeforeCreate, func() {
+		log.Println("Hello onichan!")
+	})
+
+	user := &models.User{
+		UID:       utils.GenerateUID(),
+		Email:     "ha@gmail.com",
+		Role:      models.UserRoleMember,
+		CreatedAt: time.Now().Local(),
+		UpdatedAt: time.Now().Local(),
+	}
+	err = userRepo.Create(
 		context.Background(),
-		nil,
-		filters.WithOr(
-			filters.WithFieldEqual("role", "admin"),
-			filters.WithFieldEqual("role", "ahihi"),
-		),
+		user,
 	)
 	if err != nil {
 		panic(err)
@@ -51,5 +75,5 @@ func main() {
 	// 	panic(err)
 	// }
 
-	log.Println(users)
+	log.Println(user)
 }

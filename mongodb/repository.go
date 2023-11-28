@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,21 +13,22 @@ type Tabler interface {
 }
 
 type Repository struct {
-	DB     *mongo.Database
+	Mongo  *Mongo
 	tabler Tabler
 }
 
-func New(db *mongo.Database, entity Tabler) Repository {
+func New(db *Mongo, entity Tabler) Repository {
+	db.NewCollection(entity.TableName(), entity)
 	return Repository{db, entity}
 }
 
 func (r Repository) Count(ctx context.Context, filters ...Filter) (int, error) {
-	result, err := r.DB.Collection(r.tabler.TableName()).CountDocuments(ctx, ApplyFilters(filters...))
+	result, err := r.Mongo.DB.Collection(r.tabler.TableName()).CountDocuments(ctx, ApplyFilters(filters...))
 	return int(result), err
 }
 
 func (r Repository) Find(ctx context.Context, models interface{}, opts *options.FindOptions, filters ...Filter) error {
-	cursor, err := r.DB.Collection(r.tabler.TableName()).Find(ctx, ApplyFilters(filters...), opts)
+	cursor, err := r.Mongo.DB.Collection(r.tabler.TableName()).Find(ctx, ApplyFilters(filters...), opts)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (r Repository) Find(ctx context.Context, models interface{}, opts *options.
 }
 
 func (r Repository) First(ctx context.Context, model interface{}, filters ...Filter) error {
-	if err := r.DB.Collection(r.tabler.TableName()).FindOne(ctx, ApplyFilters(filters...)).Decode(model); err != nil {
+	if err := r.Mongo.DB.Collection(r.tabler.TableName()).FindOne(ctx, ApplyFilters(filters...)).Decode(model); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (r Repository) First(ctx context.Context, model interface{}, filters ...Fil
 }
 
 func (r Repository) Last(ctx context.Context, model interface{}, filters ...Filter) error {
-	if err := r.DB.Collection(r.tabler.TableName()).FindOne(
+	if err := r.Mongo.DB.Collection(r.tabler.TableName()).FindOne(
 		ctx,
 		ApplyFilters(filters...),
 		options.FindOne().SetSort(bson.D{{Key: "_id", Value: -1}}),
@@ -61,14 +61,12 @@ func (r Repository) Last(ctx context.Context, model interface{}, filters ...Filt
 }
 
 func (r Repository) FirstOrCreate(ctx context.Context, model interface{}, create interface{}, filters ...Filter) error {
-	err := r.DB.Collection(r.tabler.TableName()).FindOne(ctx, ApplyFilters(filters...)).Decode(model)
+	err := r.Mongo.DB.Collection(r.tabler.TableName()).FindOne(ctx, ApplyFilters(filters...)).Decode(model)
 	if err == nil {
 		return nil
 	}
 
-	log.Println("vao day")
-
-	if _, err := r.DB.Collection(r.tabler.TableName()).InsertOne(ctx, create); err != nil {
+	if _, err := r.Mongo.DB.Collection(r.tabler.TableName()).InsertOne(ctx, create); err != nil {
 		return err
 	}
 
@@ -78,15 +76,19 @@ func (r Repository) FirstOrCreate(ctx context.Context, model interface{}, create
 }
 
 func (r Repository) Create(ctx context.Context, model interface{}, filters ...Filter) error {
-	if _, err := r.DB.Collection(r.tabler.TableName()).InsertOne(ctx, model); err != nil {
+	r.Mongo.RunCallback(r.tabler.TableName(), BeforeCreate)
+
+	if _, err := r.Mongo.DB.Collection(r.tabler.TableName()).InsertOne(ctx, model); err != nil {
 		return err
 	}
+
+	r.Mongo.RunCallback(r.tabler.TableName(), BeforeUpdate)
 
 	return nil
 }
 
 func (r Repository) Updates(ctx context.Context, model interface{}, value map[string]interface{}, filters ...Filter) error {
-	result, err := r.DB.Collection(r.tabler.TableName()).UpdateOne(ctx, model, map[string]interface{}{"$set": value})
+	result, err := r.Mongo.DB.Collection(r.tabler.TableName()).UpdateOne(ctx, model, map[string]interface{}{"$set": value})
 	if err != nil {
 		return err
 	}
@@ -99,7 +101,7 @@ func (r Repository) Updates(ctx context.Context, model interface{}, value map[st
 }
 
 func (r Repository) Delete(ctx context.Context, filters ...Filter) error {
-	_, err := r.DB.Collection(r.tabler.TableName()).DeleteOne(ctx, ApplyFilters(filters...))
+	_, err := r.Mongo.DB.Collection(r.tabler.TableName()).DeleteOne(ctx, ApplyFilters(filters...))
 	if err != nil {
 		return err
 	}

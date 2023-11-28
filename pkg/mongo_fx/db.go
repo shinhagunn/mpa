@@ -6,12 +6,13 @@ import (
 	"os"
 
 	"github.com/shinhagunn/mpa/config"
+	"github.com/shinhagunn/mpa/mongodb"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func New(cfg *config.Config) (*mongo.Database, error) {
+func New(cfg *config.Config) (*mongodb.Mongo, error) {
 	myLogger := &logrus.Logger{
 		Out:   os.Stdout,
 		Level: logrus.DebugLevel,
@@ -42,5 +43,5 @@ func New(cfg *config.Config) (*mongo.Database, error) {
 		return nil, err
 	}
 
-	return client.Database(cfg.Database.Name), nil
+	return mongodb.NewMongo(client.Database(cfg.Database.Name)), nil
 }

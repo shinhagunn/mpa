@@ -16,6 +16,7 @@ type Tabler interface {
 type Repository[T Tabler] interface {
 	DB() *mongo.Database
 	TableName() string
+	AddCallback(kind mongodb.CallbackType, callback func())
 	Transaction(ctx context.Context, handler func(sessionContext mongo.SessionContext) error) error
 	Count(ctx context.Context, filters ...mongodb.Filter) (int, error)
 	Find(ctx context.Context, opts *options.FindOptions, filters ...mongodb.Filter) (models []*T, err error)
@@ -32,22 +33,26 @@ type repository[T Tabler] struct {
 	entity     T
 }
 
-func NewRepository[T Tabler](db *mongo.Database, entity T) Repository[T] {
+func NewRepository[T Tabler](db *mongodb.Mongo, entity T) Repository[T] {
 	return repository[T]{
 		repository: mongodb.New(db, entity),
 	}
 }
 
 func (r repository[T]) DB() *mongo.Database {
-	return r.repository.DB
+	return r.repository.Mongo.DB
 }
 
 func (r repository[T]) TableName() string {
 	return r.entity.TableName()
 }
 
+func (r repository[T]) AddCallback(kind mongodb.CallbackType, callback func()) {
+	r.repository.Mongo.RegisterCallback(r.TableName(), kind, callback)
+}
+
 func (r repository[T]) Transaction(ctx context.Context, handler func(sessionContext mongo.SessionContext) error) error {
-	session, err := r.repository.DB.Client().StartSession()
+	session, err := r.repository.Mongo.DB.Client().StartSession()
 	if err != nil {
 		return err
 	}
