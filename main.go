@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/shinhagunn/mpa/config"
 	"github.com/shinhagunn/mpa/models"
-	"github.com/shinhagunn/mpa/mongodb"
 	"github.com/shinhagunn/mpa/pkg/mongo_fx"
 	"github.com/zsmartex/pkg/v2/utils"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Command string
@@ -33,47 +32,37 @@ func main() {
 		panic(err)
 	}
 
-	db, err := mongo_fx.New(cfg)
+	mpa, err := mongo_fx.New(cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	userRepo := mongo_fx.NewRepository(db, models.User{})
+	userRepo := mongo_fx.NewRepository(mpa, models.User{})
 
-	userRepo.AddCallback(mongodb.BeforeCreate, func() {
-		log.Println("Hello onichan!")
+	userRepo.AddCallback(mongo_fx.CallbackTypeBeforeCreate, func(db *mongo.Database, value *models.User) error {
+		log.Println("Before create")
+		value.Role = models.UserRoleSuperAdmin
+		log.Println(value)
+
+		return nil
 	})
 
-	user := &models.User{
-		UID:       utils.GenerateUID(),
-		Email:     "ha@gmail.com",
-		Role:      models.UserRoleMember,
-		CreatedAt: time.Now().Local(),
-		UpdatedAt: time.Now().Local(),
-	}
+	userRepo.AddCallback(mongo_fx.CallbackTypeAfterCreate, func(db *mongo.Database, value *models.User) error {
+		log.Println("After create")
+		log.Println(value)
+
+		return nil
+	})
+
 	err = userRepo.Create(
 		context.Background(),
-		user,
+		&models.User{
+			Email: "test1",
+			Role:  models.UserRoleAdmin,
+			UID:   utils.GenerateUID(),
+		},
 	)
 	if err != nil {
 		panic(err)
 	}
-
-	// cur, err := db.Collection("users").Find(context.Background(), bson.M{
-	// 	"$or": []bson.M{
-	// 		{"role": "admin"},
-	// 		{"role": "ahihi"},
-	// 	},
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// var users []models.User
-	// err = cur.All(context.Background(), &users)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	log.Println(user)
 }

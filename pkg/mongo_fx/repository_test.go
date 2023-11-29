@@ -9,7 +9,6 @@ import (
 
 	"github.com/shinhagunn/mpa/config"
 	"github.com/shinhagunn/mpa/models"
-	"github.com/shinhagunn/mpa/mongodb"
 	filters "github.com/shinhagunn/mpa/mongodb/fitlers"
 	"github.com/shinhagunn/mpa/pkg/mongo_fx"
 	"github.com/stretchr/testify/suite"
@@ -44,7 +43,7 @@ func (suite *UserRepositorySuite) SetupSuite() {
 		suite.T(),
 		config.Module,
 		mongo_fx.Module,
-		fx.Invoke(func(db *mongodb.Mongo) {
+		fx.Invoke(func(db *mongo_fx.Mongo) {
 			suite.userRepo = mongo_fx.NewRepository(db, models.User{})
 		}),
 	).RequireStart()
